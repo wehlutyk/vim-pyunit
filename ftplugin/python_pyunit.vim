@@ -403,9 +403,11 @@ def get_test_file_for_source_file(path):
 
 def find_source_file_for_test_file(path):
     impl = get_implementing_class()()
+    project_root = find_project_root()
     for f in impl.get_source_candidates(path):
-        if os.path.exists(f):
-            return f
+        relf = _relpath(os.path.join(project_root, f), '.')
+        if os.path.exists(relf):
+            return relf
     raise Exception("Source file not found.")
 
 
@@ -443,7 +445,7 @@ def lcd_to_project_root(path):
 
 
 def switch_to_test_file_for_source_file(path):
-    testfile = get_test_file_for_source_file(path)
+    testfile = _relpath(os.path.join(find_project_root(), get_test_file_for_source_file(path)), '.')
     testdir = os.path.dirname(testfile)
     if not os.path.isfile(testfile):
         if int(vim.eval('g:PyUnitConfirmTestCreation')):
@@ -479,7 +481,7 @@ def PyUnitSwitchToCounterpartOfFile(path):
 def PyUnitRunTestsForFile(path):
     if not is_test_file(path):
         path = get_test_file_for_source_file(path)
-    relpath = _relpath(path, '.')
+    relpath = _relpath(os.path.join(find_project_root(), path), '.')
     vim.command('call PyUnitRunTestsForTestFile("%s")' % relpath)
 
 endpython
